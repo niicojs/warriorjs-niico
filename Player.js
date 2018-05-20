@@ -32,10 +32,12 @@ class Player {
             // battle has ended, rest a bit and walk
             // todo: is it possible to know if an archer is hitting us?
             this.state = 'walk';
-            if (this.warrior.health() < 20) {
-                this.warrior.rest();
-            } else {
-                this.walk();
+            if (!this.tryToShoot()) {
+                if (this.warrior.health() < 20) {
+                    this.warrior.rest();
+                } else {
+                    this.walk();
+                }
             }
         }
     }
@@ -108,6 +110,7 @@ class Player {
     }
 
     playTurn(warrior) {
+        warrior.think(`current state = ${this.state}`);
         this.warrior = warrior;
         const space = warrior.feel(this.direction);
         if (this.state === 'battle') {
@@ -130,6 +133,8 @@ class Player {
                 // enough health, let's fight him
                 this.walk();
             }
+        } else if (warrior.health() < this.minHealth) {
+            warrior.rest();
         } else {
             // nothing happening, look around
             if (!this.tryToShoot()) {
