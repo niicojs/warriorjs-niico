@@ -3,7 +3,7 @@ class Player {
         this.previousHealth = 20;
         this.minHealth = 20;
         this.fleeHealth = 10;
-        this.direction = 'backward';
+        this.direction = 'forward';
         this.state = 'walk';
     }
 
@@ -53,15 +53,12 @@ class Player {
 
     flee() {
         if (this.state !== 'flee') {
-            // save original direction
-            this.previousDirection = this.direction;
             this.state = 'flee';
             // turn around and walk away      
-            this.turn().turn();
-            this.walk();
+            this.warrior.walk('backward');
         } else if (this.isHit()) {
             // still beeing hit, walk away
-            this.walk();
+            this.warrior.walk('backward');
         } else {
             // not beeing hit anymore
             if (this.warrior.health() < this.minHealth) {
@@ -70,7 +67,6 @@ class Player {
             } else {
                 // we're good, walk back in
                 this.state = 'walk';
-                this.direction = this.previousDirection;
                 this.walk();
             }
         }
