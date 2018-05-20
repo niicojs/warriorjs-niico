@@ -5,40 +5,29 @@ class Player {
         this.fleeHealth = 10;
         this.direction = 'forward';
         this.state = 'walk';
-    }
-
-    turn() {
-        this.direction = {
-            'forward': 'left',
-            'left': 'backward',
-            'backward': 'right',
-            'right': 'forward',
-        }[this.direction];
-        return this;
+        this.directions = ['forward', 'backward', 'left', 'right'];
     }
 
     isHit() {
         return this.warrior.health() < this.previousHealth;
     }
 
-    walk() {
-        const space = this.warrior.feel(this.direction);
+    walk(direction = this.direction) {
+        const space = this.warrior.feel(direction);
         if (space.isWall()) {
-            // this.turn();
-            // this.walk();
             this.warrior.pivot();
         } else {
-            this.warrior.walk(this.direction);
+            this.warrior.walk(direction);
         }
     }
 
-    battle() {
+    battle(direction = this.direction) {
         this.state = 'battle';
-        const space = this.warrior.feel(this.direction);
+        const space = this.warrior.feel(direction);
         // todo: flee is not much health left
         if (space.isUnit() && space.getUnit().isEnemy()) {
             // battle is still ongoing, let's fight
-            this.warrior.attack(this.direction);
+            this.warrior.attack(direction);
         } else {
             // battle has ended, rest a bit and walk
             // todo: is it possible to know if an archer is hitting us?
@@ -72,6 +61,52 @@ class Player {
         }
     }
 
+    distance(location) {
+        return Math.sqrt(location[0] * location[0] + location[1] * location[1]);
+    }
+
+    getDirection(location) {
+        if (location[0] > 0) {
+            return 'forward'
+        } else if (location[0] < 0) {
+            return 'backward';
+        } else if (location[1] >= 0) {
+            return 'right';
+        } else {
+            return 'left';
+        }
+    }
+
+    tryToShoot() {
+        const enemies = [];
+        for (const direction of this.directions) {
+            const spaces = this.warrior.look(direction);
+            const interesting = [];
+            for (const space of spaces) {
+                if (space.isUnit()) {
+                    interesting.push({
+                        distance: this.distance(space.getLocation()),
+                        space,
+                    });
+                }
+            }
+            if (interesting.length > 0) {
+                const close = interesting.sort((a, b) => a.distance - b.distance)[0];
+                if (close.space.getUnit().isEnemy()) {
+                    enemies.push(close);
+                }
+            }
+        }
+        if (enemies.length === 0) return false;
+        const closer = enemies.sort((a, b) => a.distance - b.distance)[0];
+        if (closer.distance === 1) {
+            this.log('Try to shoot with distance === 1, should not happend.');
+        }
+        const direction = this.getDirection(closer.space.getLocation());
+        this.warrior.shoot(direction);
+        return true;
+    }
+
     playTurn(warrior) {
         this.warrior = warrior;
         const space = warrior.feel(this.direction);
@@ -85,22 +120,29 @@ class Player {
             } else {
                 warrior.rescue(this.direction);
             }
-        } else {        
-            if (this.isHit()) {
-                // we are beeing hit, but not in a battle
-                // it has to be an archer
-                if (this.warrior.health() < this.fleeHealth) {
-                    // not enough health, go back to rest
-                    this.flee();
-                } else {
-                    // enough health, let's fight him
-                    this.walk();
-                }
+        } else if (this.isHit()) {
+            // we are beeing hit, but not in a battle
+            // it has to be an archer
+            if (this.warrior.health() < this.fleeHealth) {
+                // not enough health, go back to rest
+                this.flee();
             } else {
-                // nothing happening, walk
+                // enough health, let's fight him
+                this.walk();
+            }
+        } else {
+            // nothing happening, look around
+            if (!this.tryToShoot()) {
                 this.walk();
             }
         }
         this.previousHealth = warrior.health();
+    }
+
+    log(stuff) {
+        if (typeof stuff !== 'string') {
+            stuff = JSON.stringify(stuff);
+        }
+        this.warrior.think(stuff);
     }
 }
