@@ -15,7 +15,7 @@ class Player {
     walk(direction = this.direction) {
         const space = this.warrior.feel(direction);
         if (space.isWall()) {
-            this.warrior.pivot();
+            this.warrior.pivot('backward');
         } else {
             this.warrior.walk(direction);
         }
@@ -24,16 +24,16 @@ class Player {
     battle(direction = this.direction) {
         this.state = 'battle';
         const space = this.warrior.feel(direction);
-        // todo: flee is not much health left
+        // todo: flee is not enough health left
         if (space.isUnit() && space.getUnit().isEnemy()) {
             // battle is still ongoing, let's fight
             this.warrior.attack(direction);
         } else {
             // battle has ended, rest a bit and walk
-            // todo: is it possible to know if an archer is hitting us?
+            // unless this is something to shoot at
             this.state = 'walk';
             if (!this.tryToShoot()) {
-                if (this.warrior.health() < 20) {
+                if (!this.isStairsAhead() && this.warrior.health() < this.minHealth) {
                     this.warrior.rest();
                 } else {
                     this.walk();
@@ -109,6 +109,43 @@ class Player {
         return true;
     }
 
+    isStairsAhead(direction = this.direction) {
+        const interesting = [];
+        const spaces = this.warrior.look(direction);
+        if (spaces.length === 0) return false;
+        for (const space of spaces) {
+            interesting.push({
+                distance: this.distance(space.getLocation()),
+                space,
+            });
+        }
+        const closer = interesting.sort((a, b) => a.distance - b.distance)[0].space;
+        return closer.isStairs();
+    }
+
+    someoneToSave() {
+        // look around to see if we find someone to save
+        for (const direction of this.directions) {
+            const spaces = this.warrior.look(direction);
+            const interesting = [];
+            for (const space of spaces) {
+                if (space.isUnit()) {
+                    interesting.push({
+                        distance: this.distance(space.getLocation()),
+                        space,
+                    });
+                }
+            }
+            if (interesting.length > 0) {
+                const close = interesting.sort((a, b) => a.distance - b.distance)[0].space;
+                if (!close.getUnit().isEnemy()) {
+                    return close;
+                }
+            }
+        }
+        return null;
+    }
+
     playTurn(warrior) {
         warrior.think(`current state = ${this.state}`);
         this.warrior = warrior;
@@ -133,12 +170,22 @@ class Player {
                 // enough health, let's fight him
                 this.walk();
             }
-        } else if (warrior.health() < this.minHealth) {
+        } else if (!this.isStairsAhead() && warrior.health() < this.minHealth) {
             warrior.rest();
         } else {
             // nothing happening, look around
             if (!this.tryToShoot()) {
-                this.walk();
+                const buddy = this.someoneToSave();
+                if (buddy) {
+                    const direction = this.getDirection(buddy.getLocation());
+                    if (direction !== 'forward') {
+                        this.warrior.pivot(direction);
+                    } else {
+                        this.walk();
+                    }
+                } else {
+                    this.walk();
+                }
             }
         }
         this.previousHealth = warrior.health();
