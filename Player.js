@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 class Player {
     constructor() {
         this.previousHealth = 20;

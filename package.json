@@ -1,0 +1,23 @@
+{
+  "name": "niico-beginner",
+  "version": "1.0.0",
+  "description": "",
+  "main": "Player.js",
+  "scripts": {
+    "lint": "eslint *.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/niicojs/warriorjs-niico.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/niicojs/warriorjs-niico/issues"
+  },
+  "homepage": "https://github.com/niicojs/warriorjs-niico#readme",
+  "devDependencies": {
+    "eslint": "^4.19.1"
+  }
+}

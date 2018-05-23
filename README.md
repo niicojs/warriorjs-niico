@@ -1,0 +1,1 @@
+[![Build Status](https://travis-ci.org/niicojs/warriorjs-niico.svg?branch=master)](https://travis-ci.org/niicojs/warriorjs-niico)
