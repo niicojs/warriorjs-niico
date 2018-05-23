@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/niicojs/warriorjs-niico.svg?branch=master)](https://travis-ci.org/niicojs/warriorjs-niico)
+[![Build Status](https://travis-ci.org/niicojs/warriorjs-niico.svg?branch=master)](https://travis-ci.org/niicojs/warriorjs-niico) [![Greenkeeper badge](https://badges.greenkeeper.io/niicojs/warriorjs-niico.svg)](https://greenkeeper.io/)
 
 <div align="center">
   <a href="https://warrior.js.org">
